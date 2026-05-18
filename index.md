@@ -1,13 +1,13 @@
 # GSoC 2026: Parallelizing r.proj and Raster Processing Modules in GRASS
 
-**NumFOCUS Blog Posts** | University of Illinois at Urbana-Champaign  
+**NumFOCUS Blog Posts - Kaushik Raja** | University of Illinois at Urbana-Champaign  
 **Organization:** NumFOCUS / GRASS
 
 ---
 
 ## Week 0 — Community Bonding (May 17, 2026)
 
-I'm Kaushik Raja, a sophomore at UIUC studying CS and Crop Sciences.
+Hi i'm Kaushik, a sophomore at UIUC studying CS and Crop Sciences.
 This summer I'll be parallelizing r.proj and other raster processing
 modules in GRASS GIS using OpenMP.
 
