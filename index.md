@@ -7,7 +7,7 @@
 
 ## Week 0 — Community Bonding (May 17, 2026)
 
-Hi i'm Kaushik, a sophomore at UIUC studying CS and Crop Sciences.
+Hi i'm Kaushik, a sophomore at UIUC studying Computer Science + Crop Sciences.
 This summer I'll be parallelizing r.proj and other raster processing
 modules in GRASS GIS using OpenMP.
 
