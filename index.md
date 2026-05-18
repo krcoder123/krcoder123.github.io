@@ -3,6 +3,8 @@ layout: page
 title: ""
 ---
 
+# GSoC 2026: Parallelizing r.proj and Raster Processing Modules in GRASS
+
 Kaushik Raja | University of Illinois at Urbana-Champaign | NumFOCUS / GRASS
 
 ---
