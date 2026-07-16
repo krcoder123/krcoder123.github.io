@@ -3,7 +3,23 @@ layout: page
 title: ""
 ---
 
-# GSoC 2026: Parallelizing r.proj and Raster Processing Modules in GRASS
+<style>
+  body {
+    background-color: #faf6ee;
+    color: #2b2a26;
+    font-family: Georgia, 'Times New Roman', serif;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 1.5rem 1.25rem;
+  }
+  .project-overview {
+    font-size: 0.95em;
+  }
+</style>
+
+# <u>GSoC 2026: Parallelizing r.proj and Raster Processing Modules in GRASS</u>
+
+<div class="project-overview" markdown="1">
 
 ## Project Overview
 
@@ -15,37 +31,39 @@ My project parallelizes r.proj and other raster modules with OpenMP so they use 
 
 Full project details are on the GRASS wiki: [GRASS GSoC 2026 — Parallelizing r.proj and Raster Processing Modules](https://grasswiki.osgeo.org/wiki/GRASS_GSoC_2026_Parallelizing_r.proj_and_Raster_Processing_Modules_in_GRASS)
 
+</div>
+
 ## Posts
 
-<details>
+<details markdown="1">
 <summary><b>Weeks 7 and 8</b></summary>
 
 <!-- COMING SOON -->
 
 </details>
 
-<details>
+<details markdown="1">
 <summary><b>Weeks 5 and 6</b></summary>
 
 [PASTE_WEEKS_5_6]
 
 </details>
 
-<details>
+<details markdown="1">
 <summary><b>Weeks 3 and 4</b></summary>
 
 [PASTE_WEEKS_3_4]
 
 </details>
 
-<details>
+<details markdown="1">
 <summary><b>Weeks 1 and 2</b></summary>
 
 [PASTE_WEEKS_1_2]
 
 </details>
 
-<details>
+<details markdown="1">
 <summary><b>Week 0 Community Bonding</b></summary>
 
 The bonding period went into reading source code and getting a real benchmarking setup working.
