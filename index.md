@@ -52,7 +52,21 @@ Full project details are on the GRASS wiki: [GRASS GSoC 2026 — Parallelizing r
 <details markdown="1">
 <summary><b>Weeks 3 and 4</b></summary>
 
-[PASTE_WEEKS_3_4]
+**What I worked on in week 3:**
+
+While stress testing the parallel r.param.scale I found a small nondeterminism in the output, around one unit in the last place, that only showed up with more than one thread. I traced it to the pivot search in the library function [lu.c](https://github.com/OSGeo/grass/blob/5546e0172d7dad1e3ee248aec3fe00eeebbb3ab3/lib/gmath/lu.c#L57-L65). It runs a parallel loop that writes the shared variables big and imax without any synchronization or lock, so the pivot it picks can change from run to run once multiple threads are used. I reported it to the mentors and it is now tracked in issue [#7539](https://github.com/OSGeo/grass/issues/7539). As a workaround, [#7440](https://github.com/OSGeo/grass/pull/7440) runs just the LU decomposition single threaded, so the module’s output matches serial exactly at every thread count without touching the library.
+
+At mentor’s request I also created [PR #7534](https://github.com/OSGeo/grass/pull/7534), a pytest that generates a small raster and checks r.param.scale results against reference values from the current serial code. I also pushed a gunittest version to #7440 that compares nprocs=1 against nprocs=4 directly.
+
+**What I worked on in week 4:**
+
+This week was more focused on cleanup and review response. I fixed several issues in the pytest from PR #7534 based on mentor feedback and removed the gunittest version from #7440 in favor of keeping just the pytest and a universal benchmark. The rest of the week went into cleaning up the parallel r.param.scale code and addressing review comments on the PR. Meanwhile the mentors ran their own benchmarks on their hardware, with and without pinned threads, so we could compare scaling behavior across different machines.
+
+<img width="600" style="max-width:100%; height:auto;" alt="r.param.scale memory speedup chart, speedup versus number of processing elements for 10, 100, 300 and 1000 MB memory settings" src="/param_scale_memory_speedup.png" />
+
+<img width="600" style="max-width:100%; height:auto;" alt="r.param.scale memory efficiency chart, parallel efficiency versus number of processing elements for 10, 100, 300 and 1000 MB memory settings" src="/param_scale_memory_efficiency.png" />
+
+The biggest lesson from these two weeks was how much of systems engineering is problem solving in code you did not write. A bug can sit in a shared library for years and only surface once you add threads, so chasing a difference in the last decimal place meant reading well below the level I expected to. I learned that it was very crucial to nitpick at every detail and to really verify facts rather than writing things off as simple noise errors. It also reminded me that correctness at scale is not only my module’s problem, and that a clean, well tested PR that proves the old code wrong matters just as much as a fast one.
 
 </details>
 
