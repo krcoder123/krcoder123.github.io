@@ -5,16 +5,49 @@ title: ""
 
 # GSoC 2026: Parallelizing r.proj and Raster Processing Modules in GRASS
 
-Kaushik Raja | University of Illinois at Urbana-Champaign | NumFOCUS / GRASS
+## Project Overview
 
----
+Hi I'm Kaushik, a Computer Science + Crop Sciences student at UIUC working with NumFOCUS and GRASS for Google Summer of Code 2026.
 
-## Week 0 — Community Bonding (May 17, 2026)
+GRASS is one of the oldest open source geographic analysis systems. Researchers and agencies use it to process satellite imagery and map data. One of its most used tools is r.proj, which converts a raster map from one coordinate system to another, for example from plain latitude and longitude into a projection suited for a specific region. On large maps this is slow because the module runs on a single core.
 
-Hi I'm Kaushik, a sophomore at UIUC studying Computer Science + Crop Sciences. This summer I'll be parallelizing r.proj and other raster processing modules in GRASS GIS using OpenMP.
+My project parallelizes r.proj and other raster modules with OpenMP so they use all available cores. The memory use stays bounded through a memory option, so big maps still run on ordinary machines instead of needing the whole input in RAM. This gives the user flexibility in how much memory they are willing to allocate and still benefit from a speedup in running the module. The hardest part is not the threading itself. It is proving the parallel output stays exactly identical to the serial version on every projection pair, at every thread count, which is where most of my time goes.
 
-r.proj is one of GRASS's most used modules but runs entirely on one core. The goal is to change that using a two-path memory architecture with OpenMP, making raster reprojection significantly faster for researchers working with large datasets.
+Full project details are on the GRASS wiki: [GRASS GSoC 2026 — Parallelizing r.proj and Raster Processing Modules](https://grasswiki.osgeo.org/wiki/GRASS_GSoC_2026_Parallelizing_r.proj_and_Raster_Processing_Modules_in_GRASS)
 
-Full project details on the GRASS Wiki: [GRASS GSoC 2026 — Parallelizing r.proj and Raster Processing Modules](https://grasswiki.osgeo.org/wiki/GRASS_GSoC_2026_Parallelizing_r.proj_and_Raster_Processing_Modules_in_GRASS)
+## Posts
 
-I will post more updates starting this upcoming weekend and then every two weeks from there.
+<details>
+<summary><b>Weeks 7 and 8</b></summary>
+
+<!-- COMING SOON -->
+
+</details>
+
+<details>
+<summary><b>Weeks 5 and 6</b></summary>
+
+[PASTE_WEEKS_5_6]
+
+</details>
+
+<details>
+<summary><b>Weeks 3 and 4</b></summary>
+
+[PASTE_WEEKS_3_4]
+
+</details>
+
+<details>
+<summary><b>Weeks 1 and 2</b></summary>
+
+[PASTE_WEEKS_1_2]
+
+</details>
+
+<details>
+<summary><b>Week 0 Community Bonding</b></summary>
+
+[PASTE_WEEK_0]
+
+</details>
