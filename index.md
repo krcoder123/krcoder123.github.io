@@ -71,7 +71,9 @@ While reworking the module I found and fixed a bug that’s in the original seri
 
 I tested the refactored code with a bunch of different benchmarking scripts and different window sizes, every test case was with a 100 million cell raster. For one of the test cases, I used window size 31 and I saw about 1.91x at 2 threads, 3.37x at 4, and 4.55x at 8. I added the benchmark script and a script to generate the test raster to the PR so mentors can reproduce it on their own machines.
 
-<img width="541" height="196" style="max-width:100%; height:auto;" alt="image" src="https://github.com/user-attachments/assets/f88de27e-f369-495a-b4a2-a97c61a9911c" />
+<img width="541" style="max-width:100%; height:auto;" alt="r.param.scale cold-isolated parallel scaling benchmark table" src="/param_scale_image.png" />
+
+The main thing I took away from these two weeks is that matching the serial output is the easy part, and getting a real speedup is where the actual engineering is. Most of my gains did not come from the threading itself but from being careful about how much of the map each thread holds at once, which meant closely following the way r.neighbors already manages memory.
 
 </details>
 
