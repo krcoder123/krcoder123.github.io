@@ -59,7 +59,19 @@ Full project details are on the GRASS wiki: [GRASS GSoC 2026 — Parallelizing r
 <details markdown="1">
 <summary><b>Weeks 1 and 2</b></summary>
 
-[PASTE_WEEKS_1_2]
+**What I worked on in week 1**
+
+I built and benchmarked two different ways to parallelize r.param.scale. The first version reads strips straight from the disk, conceptually very similar to how r.neighbors is parallelized ([draft PR #7440](https://github.com/OSGeo/grass/pull/7440)), and the second loads them into RAM per thread ([draft PR #7442](https://github.com/OSGeo/grass/pull/7442)). Both gave exactly the same output as the original serial code across window sizes 5 to 51. There was some speedup compared to the serial version, but not as fast as it should be. In Friday’s meeting the mentors and I agreed #7440 is conceptually the better route to take. I also benchmarked r.neighbors on my computer to make sure it wasn’t a reason I was seeing poor speedup ratios. It scaled well there at larger windows, so my code was the reason for the weaker scaling, not the machine. I ended with doing a much deeper analysis of what the differences were between my disk approach and r.neighbors. I found the main gaps to be not having the two-level band structure, each thread holding too much of the map in memory, no memory limit option, and no mask handling.
+
+**What I worked on in week 2:**
+
+I refactored the code for draft PR #7440 to fix the weak speedup ratios I had last week. The parallel version now uses the same two level band setup that r.neighbors uses. It works through the map band by band, splits each band’s rows across the threads, and each thread only holds a small rolling window of rows instead of a large part of the map. I also limited memory usage with the standard memory= option and added mask handling. On a 100 million cell raster the peak went from about 620 MB down to about 330 MB. The output is still identical to the serial module’s output at one thread and with a mask.
+
+While reworking the module I found and fixed a bug that’s in the original serial module too. When the window is larger than the region, it used to write past the end of the map. The parallel version handles that case cleanly now.
+
+I tested the refactored code with a bunch of different benchmarking scripts and different window sizes, every test case was with a 100 million cell raster. For one of the test cases, I used window size 31 and I saw about 1.91x at 2 threads, 3.37x at 4, and 4.55x at 8. I added the benchmark script and a script to generate the test raster to the PR so mentors can reproduce it on their own machines.
+
+<img width="541" height="196" style="max-width:100%; height:auto;" alt="image" src="https://github.com/user-attachments/assets/f88de27e-f369-495a-b4a2-a97c61a9911c" />
 
 </details>
 
