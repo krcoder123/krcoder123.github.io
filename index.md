@@ -38,7 +38,17 @@ Full project details are on the GRASS wiki: [GRASS GSoC 2026 — Parallelizing r
 <details markdown="1">
 <summary><b>Weeks 7 and 8</b></summary>
 
-<!-- COMING SOON -->
+**What I worked on in week 7:**
+
+I finished the fix for the lu.c bug this week. The fix itself is just removing the parallel pragma from the pivot search, since none of the callers actually benefit from it. I implemented it, tested it, and added it to [#7440](https://github.com/OSGeo/grass/pull/7440), which also let me remove the single threaded workaround in r.param.scale and the pytest skip, since neither is needed once the library itself is correct. To make sure the fix is real and not just hiding the problem, I built a separate test of G_ludcmp and ran it under thread sanitizer. The old version with the pragma reports data races and the fixed version runs clean. The module output is now identical across thread counts with no workaround at all.
+
+The rest of the week went into the column-wise parallelization for r.proj in [#7627](https://github.com/OSGeo/grass/pull/7627) that was suggested to me. The idea is that before loading anything, the code checks whether the next band of output rows fits under the memory cap at full width. If it does, it proceeds row wise like before. But if even a single full width row needs more input than the cap allows, the band gets split into column tiles until each tile fits. Getting this right meant figuring out how to bound which input rows each tile actually needs, which I do by walking the tile edges and back projecting them into the input. I also parallelized the input reading, where each thread gets its own file descriptor so they can read different parts of the input at the same time. Another thing I handled was PROJ transformation objects. They can’t be shared across threads, so each thread now clones its own through a small wrapper I added to the projection library. I was also asked for that wrapper to go into the library properly, and doing it that way also removed a direct PROJ build dependency from both build systems.
+
+Doing column-wise parallelization also extended how many CRS reprojections the code handles, which is from simple reprojections to much harder pairs. There is a wide Lambert Azimuthal job that the row wise version couldn’t run at all under the memory cap. The column wise version finishes it. The output matches the serial module exactly on every projection pair I tested, at 1 through 8 threads with multiple input patterns. The one case still failing at the end of the week was the very hardest kind, maps with a pole inside the output frame.
+
+**What I worked on in week 8:**
+
+*[Week 8 report coming soon]*
 
 </details>
 
