@@ -48,7 +48,17 @@ Doing column-wise parallelization also extended how many CRS reprojections the c
 
 **What I worked on in week 8:**
 
-*[Week 8 report coming soon]*
+The r.param.scale PR got merged this week with the lu.c race fix from last week, so that whole workstream is done.
+
+The rest of the week I wasn’t able to work on r.proj as much as I wanted to but I was still able to accomplish a lot. The first thing finished was the pole map fix, so the parallel r.proj now handles maps with a north or south pole inside the output frame. That closed the final map case for the nearest method.
+
+Then I found that the non-nearest methods were silently broken in the parallel path. If you asked for methods like “bilinear”, “bicubic”, or “lanczos”, the code silently uses the “nearest” method instead and gives that output with no warning. The parallel path needed its own versions of the bilinear, bicubic, and lanczos code, so I wrote those by carefully copying the math from the original module and hooking them up the same way the original picks between methods. While checking their output against the original I found a second bug. Some output rows landed at a very slightly different position, smaller than any real map difference but enough that the outputs were not exactly identical. The cause was that the original module calculates each row's position by subtracting step by step, row after row, while my code jumped straight there with one multiplication. On a computer those two ways can give answers that differ in the last decimal place. I changed my code to calculate it step by step like the original, and after that the outputs match exactly.
+
+The third thing was the memory cap edge case. There are inputs so wide that even one output row's input strip cannot fit under a small cap, and my code used to just cancel there, while the old r.proj would finish slowly. Now the parallel r.proj falls back to the old serial tile cache for those runs and prints the exact memory value that would keep the parallel path. This way if the user wanted the benefits of the parallelization and could spare some more memory they would know exactly how much memory they need to activate the parallel path for their map. However if they really can’t spare more memory, then it just falls back to the tile cache, but this fallback only occurs on extremely rare and purposely wide input tests. I swept through different memory caps to see how often this fires, and it never triggered on any real projection pair down to 1 MB. Only a deliberately wide test input hits it. Because of this addition, all tests are covered with outputs the exact same as the serial, so the PR CI tests all passed.
+
+To close the week I ran a full verification and benchmark suite overnight. The full list of benchmarks I ran are at my latest comment within the [#7627](https://github.com/OSGeo/grass/pull/7627) draft PR.
+
+Weeks 7 and 8 really taught me that passing tests is not the same as being correct. The lu.c fix only felt real once I reproduced the race under thread sanitizer and watched it disappear, and the r.proj work only counted once the parallel output matched the serial module exactly. That last part kept teaching me the same lesson from a new angle, that on real hardware the order of arithmetic matters. Matching the serial output meant computing each row's position the same step by step way the original does instead of the faster direct formula, because the two disagree in the last decimal place.
 
 </details>
 
