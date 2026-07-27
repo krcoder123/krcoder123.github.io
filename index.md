@@ -36,6 +36,25 @@ Full project details are on the GRASS wiki: [GRASS GSoC 2026 — Parallelizing r
 ## Posts
 
 <details markdown="1">
+<summary><b>Weeks 9 and 10</b></summary>
+
+**What I worked on in week 9:**
+
+Most of the r.proj work this week was finishing the remaining review items and getting everything ready for review. I implemented the two speedup items from the earlier review, keeping the input strip resident across bands instead of re-reading it, and writing the previous band’s output while the next band computes. Both of them together improved the total speedup on every test case, with the biggest improvements being on the hard map cases since that’s where the serial phases were the problem. For testing, I made the method reference test move into their own [PR #7766](https://github.com/OSGeo/grass/pull/7766) based on review feedback, replacing the old testsuite with pytest. The main [PR #7627](https://github.com/OSGeo/grass/pull/7627) keeps new pytest cases that check the parallel output matches serial. I also made a separate small [PR #7764](https://github.com/OSGeo/grass/pull/7764) that fixed a data race on two globals in the projection library and it got merged this week. I also added a benchmark script for the module, ran the full benchmark grid, and posted the results and scaling graphs in the PR. With all that done I rewrote the PR description and marked the module ready for review.
+
+The rest of the week went to r.geomorphon, which moved faster than I expected. I first did a thorough recon of the module and it showed each output row only needs a fixed window of input rows sized by the search option. This is a very similar idea that r.param.scale and r.neighbors ran on. So I started working towards the parallelization, and along the way I found an already existing crash on regions smaller than the search window and fixed it as a small separate [PR #7773](https://github.com/OSGeo/grass/pull/7773).
+
+For the parallelization I first made two per cell globals into function parameters so threads would not fight over them, then rewrote the input handling into per band strips sized from a new memory option. I then added the parallel region with per thread file descriptors, and finished with a nprocs option. The hard part was reproducing the original code’s buffer positioning at map edges exactly.
+
+I ran benchmarks for the parallel r.geomorphon on my machine and it has a promising speedup. It got about 1.9x at 2 threads, 3.3 to 3.7x at 4, and 4.2 to 5.1x at 8 versus serial. The best speedups were on lat-lon maps since they are the most compute heavy. I wrote the benchmark script for it as well and pushed it on [PR #7783](https://github.com/OSGeo/grass/pull/7783).
+
+**What I worked on in week 10:**
+
+*[Week 10 progress coming soon]*
+
+</details>
+
+<details markdown="1">
 <summary><b>Weeks 7 and 8</b></summary>
 
 **What I worked on in week 7:**
