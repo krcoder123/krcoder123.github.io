@@ -48,7 +48,9 @@ I also started updating my project wiki page for the final report. I cleaned up 
 
 **What I worked on in week 12:**
 
-*[Week 12 progress coming soon]*
+This week I addressed review points on the r.proj and r.geomorphon PRs. On [PR #7807](https://github.com/OSGeo/grass/pull/7807) I added a reload path. This pretty much means that if the input strip read for a band turns out to be too short, the module finds which rows were missing, reads the strip again a bit wider, and redoes that band. This is better than what the module did before, which was simply stopping the run. I moved some code into its own file with a small interface for simplicity, and fixed some confusing variable names and comments. I also tested a couple of suggestions to see if they help, but it turned out they didn't help much so I left the code as it was. I also adjusted the pytest suite. I reran the full benchmark matrix on the final code and the speedup ratios stayed strong. On [PR #7783](https://github.com/OSGeo/grass/pull/7783) I addressed feedback on the parallel tests.
+
+I also finished the final report section on the wiki page and will send it to my mentors.
 
 </details>
 
