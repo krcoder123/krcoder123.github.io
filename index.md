@@ -36,6 +36,23 @@ Full project details are on the GRASS wiki: [GRASS GSoC 2026 — Parallelizing r
 ## Posts
 
 <details markdown="1">
+<summary><b>Weeks 11 and 12</b></summary>
+
+**What I worked on in week 11:**
+
+This week started with finishing the cleaner r.proj approach. I ran the full benchmark matrix for it after finishing the code implementation and testing that the output was correct. I benchmarked 14 scenarios covering three projections, both memory settings, and all interpolation methods, with every phase of the run timed. The new sizing approach within this implementation cut the sizing time nicely and also helped bring up speedup times for the maps that didn't do as great before. With the benchmarks done I opened it as draft [PR #7807](https://github.com/OSGeo/grass/pull/7807) with the full results table, so it can be compared against [PR #7627](https://github.com/OSGeo/grass/pull/7627) directly.
+
+On [PR #7785](https://github.com/OSGeo/grass/pull/7785) I got mentor feedback and addressed it. Some test cases produced the same results as the default on the test DEM, so I removed them. I also removed unnecessary overwrite flags. The old testsuite used to check category labels, so I added that back into the landform test. After that the PR was merged. Since the tests were now in main, I rebased [PR #7783](https://github.com/OSGeo/grass/pull/7783) over it and added the parallel identity tests that were waiting on this merge. These tests run the module with different thread counts, band sizes, and masks, then check that every run gives the same output as a single threaded run.
+
+I also started updating my project wiki page for the final report. I cleaned up the abstract, scope, timeline, and PR log to match how things actually ended up.
+
+**What I worked on in week 12:**
+
+*[Week 12 progress coming soon]*
+
+</details>
+
+<details markdown="1">
 <summary><b>Weeks 9 and 10</b></summary>
 
 **What I worked on in week 9:**
