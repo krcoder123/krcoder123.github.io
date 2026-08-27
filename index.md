@@ -36,6 +36,98 @@ Full project details are on the GRASS wiki: [GRASS GSoC 2026 — Parallelizing r
 ## Posts
 
 <details markdown="1">
+<summary><b>Final Report</b></summary>
+
+### Abstract
+
+Many GRASS raster modules still do their work on a single core. On a laptop with eight cores that means seven of them sit idle, while only one core does all the work. On a large map, only using one thread means the wait time to receive the output will be long. This project parallelizes three commonly used modules so they can use multiple cores at once, cutting wait time significantly. The modules are r.param.scale, r.geomorphon and r.proj. Each of the three modules is parallelized using OpenMP and a memory bounded approach that gives users the freedom to choose how much memory they want to use. As a result of this project, users can now benefit from a speedup depending on the number of threads they allow and the amount of memory they allocate. The outputs are exactly the same as when the modules ran single threaded, bit for bit.
+
+### My Contributions
+
+#### r.param.scale
+
+r.param.scale is a module that takes an elevation map and computes terrain parameters like slope and curvature at every cell. For each cell in the input map, it looks at the cell's neighbors and takes their height to find a curved shape that passes through them. The module finds the terrain parameters from this shape.
+
+Each cell's answer depends only on its neighbors, so the map can be split across threads and each thread can work through its share independently. This made the parallelization process simple, but the problem was optimizing memory. The one threaded version of the module loaded the whole map into RAM at once. That was fine for a small map and a single thread, but it doesn't scale. I rewrote that logic to work through the map in horizontal bands, where each band is sized so it fits inside whatever memory the user allows. The threads then split the rows inside each band. This gives around 4.6x speedup compared to serial at eight threads.
+
+While testing the parallelization, I came across a bug that existed since 2012 within the core GRASS math library. There was a race condition between two shared variables that caused wrong answers to occur when multiple threads were called at the same time. I diagnosed the issue, found a solution, tested it, and added the bug fix within the same PR that parallelized r.param.scale.
+
+| Number of threads | Speedup |
+| --- | --- |
+| 1 | 1.0x |
+| 2 | 1.91x |
+| 4 | 3.37x |
+| 8 | 4.55x |
+
+#### r.geomorphon
+
+r.geomorphon takes an elevation map as input and labels every cell as a landform type like ridge, valley, slope or flat. It does this by looking outward from each cell in eight different directions and checking if the ground rises or falls along each of the directions. The pattern of ups and downs helps decide what type of landform the cell is.
+
+Almost all of the run time was in that one step, and each cell's answer only depends on the terrain around it. So, I split the output rows across threads. To keep the memory usage limited to how much the user allows, the module now works through the map in horizontal bands. A horizontal band is a certain number of rows clumped together all handled by threads. The size of each band depends on how much memory the user allows. A cell near the top or bottom of a band still needs to see the cells just outside the band. This is because its landform depends on the terrain around it. So each band is read with a few extra rows above and below it. That way every cell sees exactly the same neighbors it would if the whole map were loaded. Not only does this allow the output to be correct, but it also gives around 5.2x speedup at eight threads.
+
+| Number of threads | Speedup |
+| --- | --- |
+| 1 | 1.0x |
+| 2 | 1.9x |
+| 4 | 3.5x |
+| 8 | 5.3x |
+
+#### r.proj
+
+r.proj is a module that takes a map made in one coordinate system and converts it into another. This is important because many GIS projects need maps with the same projection so that they can take accurate measurements, process data more easily, or align raster data. To build the new map, r.proj takes each cell of the new map, finds the spot in the old map that it corresponds to, and copies the value from there.
+
+Each output cell can be computed on its own, so the rows can be split across threads. So similar to the other 2 modules, the parallelization is simple, but memory is the problem again. Because the two maps are in different projections, one output row does not match one input row. It touches a curved band of input rows, and to compute a set of output rows you have to hold all the input rows they touch. That number changes with the projection and with where you are in the map. On top of that, you have to know where you land before you read the input.
+
+Instead of working this out band by band, the module figures it out once at the start. The module projects the edges of the output map into the input map. Then for each output row, and for each block of columns within that row, it records the input rows that block needs and stores it within a table. That table is used to look things up. After that, sizing a band properly is just looking up the values from the table. It takes as many output rows as it can fit inside the memory the user allows, and if even one full row is too wide it cuts the row into column tiles. If nothing fits at all it uses the original serial code instead. Then each band's input rows are read once and the threads split up the output rows. This makes the speedup range from 2.5x to 5.7x depending on the map and the memory allowed.
+
+One of the many r.proj scenarios: EPSG:4326 to EPSG:3857, memory=300, method=nearest
+
+| Number of threads | Speedup |
+| --- | --- |
+| 1 | 1.27x |
+| 2 | 2.17x |
+| 4 | 3.54x |
+| 8 | 4.19x |
+
+#### Pytest and Benchmarks
+
+I replaced all three modules' testsuite with a new pytest and added a benchmarking script within the module.
+
+### Future work
+
+There is still plenty left to do here:
+
+- Many raster modules still run single threaded, so they need to be parallelized. The approach used in these three modules transfers directly to any module that works row by row.
+- The progress reporting function in the GRASS library is not thread safe, so parallel modules currently have to work around it. A library level fix would clean that up for every module at once.
+- Several modules still use the old testsuite framework and need to move towards the pytest format.
+
+### Conclusion
+
+Three of the more popular GRASS raster modules now run on multiple cores instead of one, and they do it without changing a single value in the output. Users pick how many threads they want to use and how much memory to give them, and the module does the rest.
+
+Along the way I encountered some bugs and was able to fix them. Two of the more prominent bugs were data races in GRASS libraries. One of them sitting there since 2012, and a crash in r.geomorphon on small regions. All three modules now have pytest suites and published benchmarks, so anyone can check the numbers and build on the work.
+
+I want to thank my mentors Anna Petrasova and Huidae Cho for their guidance and reviews throughout the summer, and the GRASS community for being welcoming the whole way.
+
+### Log of Pull Requests
+
+| Pull Request / Issue | Description | Status |
+| --- | --- | --- |
+| [PR #7440](https://github.com/OSGeo/grass/pull/7440) | r.param.scale parallelization and G_ludcmp race fix | Merged |
+| [PR #7764](https://github.com/OSGeo/grass/pull/7764) | Fix a data race on two globals in the projection library | Merged |
+| [PR #7773](https://github.com/OSGeo/grass/pull/7773) | Fix a r.geomorphon crash on regions smaller than the search window | Merged |
+| [PR #7785](https://github.com/OSGeo/grass/pull/7785) | Replace the r.geomorphon testsuite with pytest tests | Merged |
+| [PR #7627](https://github.com/OSGeo/grass/pull/7627) | r.proj parallelization with memory bounded bands | Closed in favor or #7807 |
+| [PR #7807](https://github.com/OSGeo/grass/pull/7807) | Simpler r.proj band sizing from a precomputed footprint grid | In review |
+| [PR #7783](https://github.com/OSGeo/grass/pull/7783) | r.geomorphon parallelization | Merged |
+| [PR #7766](https://github.com/OSGeo/grass/pull/7766) | Replace the r.proj method testsuite with pytest tests | Merged |
+| [Issue #7539](https://github.com/OSGeo/grass/issues/7539) | G_ludcmp data race report | Addressed within #7440 |
+| [PR #7185](https://github.com/OSGeo/grass/pull/7185) | r.proj proof of concept | Closed in favor of #7627 |
+| [PR #7236](https://github.com/OSGeo/grass/pull/7236) | r.param.scale proof of concept | Closed in favor of #7440 |
+
+</details>
+
+<details markdown="1">
 <summary><b>Weeks 11 and 12</b></summary>
 
 **What I worked on in week 11:**
