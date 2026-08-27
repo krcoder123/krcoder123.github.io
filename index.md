@@ -50,7 +50,9 @@ I ran benchmarks for the parallel r.geomorphon on my machine and it has a promis
 
 **What I worked on in week 10:**
 
-*[Week 10 progress coming soon]*
+This week went mostly into trying a slightly cleaner approach to parallelizing r.proj, but I started by going through mentor review and feedback on my other PRs. On [PR #7785](https://github.com/OSGeo/grass/pull/7785) I restarted the pytest script for r.geomorphon based on review feedback. I built a new DEM that produces all ten landform classes and replaced the old testsuite coverage with it. I also moved the parallel identity tests out of it, and those will land on [PR #7783](https://github.com/OSGeo/grass/pull/7783) after the pytest PR merges. On #7783 I addressed a readability comment, moved the functions below main, passed their parameters through structs instead of a long argument list, and removed a dead code block. I also tightened some comments on [PR #7766](https://github.com/OSGeo/grass/pull/7766).
+
+The rest of the week went into r.proj. My mentors told me to try a simpler approach than the one I'm using in [PR #7627](https://github.com/OSGeo/grass/pull/7627), since the sizing approach there is complicated. So I worked on a cleaner one. Instead of searching for band sizes by guess and check, the module now projects the output edges once when the run starts into a table, and sizes every band from that. Because the values are in a table, it is much easier for the module to find how much a band can handle without having to guess a number and check it. The module simply reads down the table until the memory cap doesn't allow any more rows, which cuts down sizing time and improves speedups on the scenarios that were previously lacking. While testing it I found a problem with the approach on strongly curved projections at low memory caps. I was able to fix it, and verified the output stays bitwise identical to serial.
 
 </details>
 
